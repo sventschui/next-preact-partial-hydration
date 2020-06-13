@@ -104,7 +104,7 @@ export default function Header() {
 
 ### Generated code
 
-The `Hydrate` component and the webpack/babel magic will generate HTML in the form below
+The `Hydrate` component and the webpack/babel magic will generate HTML and JS in the form below
 
 ```html
 <div>
