@@ -6,15 +6,12 @@ module.exports = function withPartialHydration(nextConfig = {}) {
   return Object.assign({}, nextConfig, {
     webpack(config, options) {
       if (!options.isServer) {
-        console.log(config);
         const oldEntryFn = config.entry;
         config.entry = async function (...args) {
-          console.log({ args });
           const oldEntry = await oldEntryFn(...args);
-          console.log({ oldEntry });
 
-          oldEntry["static/runtime/main.js"] = [];
-          oldEntry["static/development/pages/_app.js"] = [];
+          // oldEntry["static/runtime/main.js"] = [];
+          // oldEntry["static/development/pages/_app.js"] = [];
 
           return oldEntry;
         };

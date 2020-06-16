@@ -7,9 +7,9 @@
   "author": "Sven Tschui <sventschui@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "dev": "node cli.js dev",
+    "dev": "node server.js",
     "build": "node cli.js build",
-    "start": "node cli.js start"
+    "start": "NODE_ENV=production node server.js"
   },
   "dependencies": {
     "@zeit/next-bundle-analyzer": "^0.1.2",
