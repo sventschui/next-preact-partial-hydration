@@ -1,0 +1,25 @@
+{
+  "name": "next-preact-partial-hydration-example",
+  "version": "1.0.0",
+  "description": "Next.js powered partial hydration example using preact",
+  "main": "index.js",
+  "repository": "https://github.com/sventschui/next-preact-partial-hydration",
+  "author": "Sven Tschui <sventschui@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "dev": "node cli.js dev",
+    "build": "node cli.js build",
+    "start": "node cli.js start"
+  },
+  "dependencies": {
+    "@zeit/next-bundle-analyzer": "^0.1.2",
+    "next": "^9.4.4",
+    "next-preact-partial-hydration": "1.0.0",
+    "preact": "^10.4.4",
+    "preact-render-to-string": "^5.1.9"
+  },
+  "devDependencies": {
+    "module-alias": "^2.2.2",
+    "nodemon": "^2.0.4"
+  }
+}

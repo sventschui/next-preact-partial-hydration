@@ -1,0 +1,13 @@
+{
+  "name": "next-preact-partial-hydration-workspace",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/sventschui/next-preact-partial-hydration.git",
+  "author": "Sven Tschui <sventschui@gmail.com>",
+  "license": "MIT",
+  "private": "true",
+  "workspaces": [
+    "example",
+    "next-preact-partial-hydration"
+  ]
+}

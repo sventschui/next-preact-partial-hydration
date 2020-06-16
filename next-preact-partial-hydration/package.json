@@ -1,0 +1,16 @@
+{
+  "name": "next-preact-partial-hydration",
+  "version": "1.0.0",
+  "description": "Next.js powered partial hydration example using preact",
+  "main": "src/index.js",
+  "repository": "https://github.com/sventschui/next-preact-partial-hydration",
+  "author": "Sven Tschui <sventschui@gmail.com>",
+  "license": "MIT",
+  "peerDependencies": {
+    "preact": "^10.4.4"
+  },
+  "devDependencies": {
+    "prettier": "^2.0.5"
+  },
+  "dependencies": {}
+}
