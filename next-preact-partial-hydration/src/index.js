@@ -1,4 +1,5 @@
 const { h, Fragment } = require("preact");
+const uuid = require("uuid");
 
 function hydrate(Component, options) {
   if (typeof options === "undefined") {
@@ -7,11 +8,9 @@ function hydrate(Component, options) {
     );
   }
 
-  console.log(options);
-
   // __self contains a circular ref
   return ({ children, __self, ...props }) => {
-    const hydrationId = "TOOD";
+    const hydrationId = uuid.v4().replace(/-/g, "");
 
     return h(Fragment, {}, [
       h(
@@ -21,7 +20,7 @@ function hydrate(Component, options) {
           "data-hydration-id": hydrationId,
         },
         JSON.stringify({
-          component: "TODO",
+          component: options.component,
           props,
         })
       ),

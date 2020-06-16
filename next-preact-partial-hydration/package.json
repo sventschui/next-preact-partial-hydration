@@ -12,5 +12,7 @@
   "devDependencies": {
     "prettier": "^2.0.5"
   },
-  "dependencies": {}
+  "dependencies": {
+    "uuid": "^8.1.0"
+  }
 }
