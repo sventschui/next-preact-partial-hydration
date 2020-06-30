@@ -1,6 +1,8 @@
 const { h, Fragment } = require("preact");
 const uuid = require("uuid");
 
+const isServer = typeof window === "undefined";
+
 function hydrate(Component, options) {
   if (typeof options === "undefined") {
     throw new Error(
@@ -11,6 +13,10 @@ function hydrate(Component, options) {
   // __self contains a circular ref
   return ({ children, __self, ...props }) => {
     const hydrationId = uuid.v4().replace(/-/g, "");
+
+    if (!isServer) {
+      return h(Fragment, {}, [h(Component, props, children)]);
+    }
 
     return h(Fragment, {}, [
       h(

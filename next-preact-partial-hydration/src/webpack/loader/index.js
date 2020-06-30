@@ -12,15 +12,8 @@ const { getOptions } = require("loader-utils");
 
 module.exports = function (source) {
   const options = getOptions(this);
-  console.log("LOADER!", source, options);
 
-  let hydrations;
-  try {
-    hydrations = JSON.parse(options.hydrations);
-  } catch (e) {
-    console.log(options.hydrations);
-    throw e;
-  }
+  const hydrations = JSON.parse(options.hydrations);
 
   const identifiers = new WeakMap();
   let identifierCounter = 0;
@@ -54,7 +47,6 @@ module.exports = function (source) {
   // Apply some transformations to the source...
 
   const code = `
-  console.log('I AM PARTIALLY HYDRATED!!!!');
   import { h, hydrate } from 'preact';
   import { useState } from 'preact/hooks';
   
@@ -89,11 +81,11 @@ module.exports = function (source) {
       currentNode = currentNode.nextSibling;
     }
     
-    hydrate(h(Component, null, props), {
+    hydrate(h(Component, props, []), {
         childNodes,
         // TODO: In Jason's demo he mentiones this appendChild is not really required, investigate...
-        appendChild(c) {
-          this.parentNode.insertBefore(c, endEl);
+        appendChild: function (c) {
+          startEl.parentNode.insertBefore(c, endEl);
         },
     });
   });  

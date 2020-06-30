@@ -1,5 +1,4 @@
-const { declare } = require("@babel/helper-plugin-utils");
-const uuid = require("uuid");
+const crypto = require("crypto");
 
 module.exports = ({ assertVersion, types: t }) => {
   assertVersion(7);
@@ -46,7 +45,13 @@ module.exports = ({ assertVersion, types: t }) => {
                       ),
                       t.objectProperty(
                         t.stringLiteral("componentKey"),
-                        t.stringLiteral(uuid.v4().replace(/-/g, ""))
+                        t.stringLiteral(
+                          crypto
+                            .createHash("md5")
+                            .update(this.file.opts.filename)
+                            .update(path.parentPath.node.id.name)
+                            .digest("hex")
+                        )
                       ),
                     ])
                   );
@@ -98,7 +103,13 @@ module.exports = ({ assertVersion, types: t }) => {
                   ),
                   t.objectProperty(
                     t.stringLiteral("componentKey"),
-                    t.stringLiteral(uuid.v4().replace(/-/g, ""))
+                    t.stringLiteral(
+                      crypto
+                        .createHash("md5")
+                        .update(this.file.opts.filename)
+                        .update("$default$")
+                        .digest("hex")
+                    )
                   ),
                 ])
               );

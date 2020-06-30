@@ -7,52 +7,29 @@ const fs = require("fs");
 const webpack = require("webpack");
 const path = require("path");
 const SingleEntryDependency = require("webpack/lib/dependencies/SingleEntryDependency");
+const MultiEntryDependency = require("webpack/lib/dependencies/MultiEntryDependency");
+const MultiModuleFactory = require("webpack/lib/MultiModuleFactory");
+const DynamicEntryPlugin = require("webpack/lib/DynamicEntryPlugin");
 
 module.exports = class NextPreactPartialHydrationWebpackPlugin {
   apply(compiler) {
     const hydrateCallsByModule = {};
-    const entriesToAdd = [];
 
-    compiler.hooks.afterCompile.tapAsync(NAME, (compilation, callback) => {
-      let remainingInvocations = entriesToAdd.length;
+    compiler.hooks.compilation.tap(
+      NAME,
+      (compilation, { normalModuleFactory }) => {
+        const multiModuleFactory = new MultiModuleFactory();
 
-      if (entriesToAdd.length == 0) {
-        callback();
-      }
-
-      entriesToAdd.forEach(({ request, context, hydrations }) => {
-        console.log("adding entry for original request", request, "...");
-        // TODO: We seem to be to late to add an Entry. The compilation is already
-        // sealed at this point and the entry is not handled.
-        // Adding it during the compilation.hooks.succeedEntry hook seems to soon as it throws:
-        //     TypeError: Cannot read property 'addChunk' of null
-        //       at Object.connectChunkAndModule (/Users/sventschui/code/github.com/sventschui/next-preact-partial-hydration/node_modules/webpack/lib/GraphHelpers.js:35:13)
-        //       at Compilation.seal (/Users/sventschui/code/github.com/sventschui/next-preact-partial-hydration/node_modules/webpack/lib/Compilation.js:1308:17)
-        //       at /Users/sventschui/code/github.com/sventschui/next-preact-partial-hydration/node_modules/webpack/lib/Compiler.js:675:18
-        //       at /Users/sventschui/code/github.com/sventschui/next-preact-partial-hydration/node_modules/webpack/lib/Compilation.js:1261:4
-        compilation.addEntry(
-          context,
-          new SingleEntryDependency(
-            `${require.resolve(
-              "next-preact-partial-hydration/webpack-loader"
-            )}?hydrations=${encodeURIComponent(JSON.stringify(hydrations))}!`
-          ),
-          "foo-bar", // TODO: derive something from the original `request`
-          (err, mod) => {
-            console.log("done", err, mod, remainingInvocations);
-            if (err) {
-              console.log("addEntry failed!!! ", err);
-              remainingInvocations = -1;
-              callback(err);
-            } else {
-              if (--remainingInvocations == 0) {
-                callback();
-              }
-            }
-          }
+        compilation.dependencyFactories.set(
+          MultiEntryDependency,
+          multiModuleFactory
         );
-      });
-    });
+        compilation.dependencyFactories.set(
+          SingleEntryDependency,
+          normalModuleFactory
+        );
+      }
+    );
 
     compiler.hooks.compilation.tap(
       NAME,
@@ -62,74 +39,77 @@ module.exports = class NextPreactPartialHydrationWebpackPlugin {
           normalModuleFactory
         );
 
-        compilation.hooks.childCompiler.tap(NAME, (entry, callback) => {
-          console.log("childCompiler!!!!");
-        });
-        compilation.hooks.succeedEntry.tap(NAME, (entry, callback) => {
-          console.log("succeedEntry"); // , entry, entry.module.dependencies);
+        compilation.hooks.finishModules.tapAsync(NAME, (modules, callback) => {
+          Promise.all(
+            compilation.entries.map(async (entry) => {
+              if (
+                entry.request &&
+                entry.request.indexOf(
+                  "next-preact-partial-hydration/webpack-loader"
+                ) !== -1
+              ) {
+                return;
+              }
 
-          if (
-            entry.request &&
-            entry.request.indexOf(
-              "next-preact-partial-hydration/webpack-loader"
-            ) !== -1
-          ) {
-            return;
-          }
+              // collect all calls to hydrate() for this entry
+              let hydrations = [];
+              const visited = new WeakSet();
 
-          // collect all calls to hydrate() for this entry
-          let hydrations = [];
-          const visited = new WeakSet();
+              function collectHydrations(mod) {
+                if (mod == null || visited.has(mod)) {
+                  return;
+                }
 
-          function collectHydrations(mod) {
-            if (mod == null || visited.has(mod)) {
-              return;
-            }
+                visited.add(mod);
 
-            visited.add(mod);
+                if (hydrateCallsByModule[mod]) {
+                  hydrations = hydrations.concat(hydrateCallsByModule[mod]);
+                }
 
-            if (hydrateCallsByModule[mod]) {
-              hydrations = hydrations.concat(hydrateCallsByModule[mod]);
-            }
-
-            if (Array.isArray(mod.dependencies)) {
-              for (const dependency of mod.dependencies) {
-                if (dependency.module) {
-                  collectHydrations(dependency.module);
+                if (Array.isArray(mod.dependencies)) {
+                  for (const dependency of mod.dependencies) {
+                    if (dependency.module) {
+                      collectHydrations(dependency.module);
+                    }
+                  }
                 }
               }
-            }
-          }
 
-          collectHydrations(entry.module);
+              collectHydrations(entry);
 
-          const { request, userRequest } = entry;
+              if (hydrations.length === 0) {
+                return;
+              }
 
-          // TODO: This works for SingleModuleEntry only....
-          const context = entry.module && entry.module.context;
+              const addEntry = (entry, name) => {
+                const dep = DynamicEntryPlugin.createDependency(entry, name);
 
-          console.log({ request, userRequest, context });
+                return new Promise((res, rej) => {
+                  compilation.addEntry(this.context, dep, name, (err) => {
+                    if (err) {
+                      rej(err);
+                    } else {
+                      res();
+                    }
+                  });
+                });
+              };
 
-          if (hydrations.length === 0) {
-            console.log("No hydrations for entry");
-            return;
-          }
+              const existingEntry = compilation._preparedEntrypoints.find(
+                (prepEntry) => prepEntry.module === entry
+              );
 
-          console.log("=> ", hydrations);
-
-          entriesToAdd.push({
-            request,
-            context,
-            hydrations,
-          });
-        });
-
-        compilation.hooks.finishModules.tap(NAME, (...args) => {
-          // console.log("finish modules", ...args);
-          const dir = path.join(process.cwd(), ".next/partial-hydration");
-          fs.mkdirSync(dir, { recursive: true });
-          fs.writeFileSync(path.join(dir, "test.js"), "123", "utf8");
-          // compilation.addEntry(__dirname, path.join(dir, "test.js"), "test");
+              await addEntry(
+                `next-preact-partial-hydration/webpack-loader?hydrations=${encodeURIComponent(
+                  JSON.stringify(hydrations)
+                )}!`,
+                existingEntry.name
+              );
+            })
+          ).then(
+            () => callback(),
+            (err) => callback(err)
+          );
         });
       }
     );
@@ -167,10 +147,6 @@ module.exports = class NextPreactPartialHydrationWebpackPlugin {
           .tap(NAME, function (expression) {
             // TODO: do not detect by name but rather by imports we collected in `identifiers`
             if (expression.callee.name === "hydrate") {
-              if (!hydrateCallsByModule[parser.state.module]) {
-                hydrateCallsByModule[parser.state.module] = [];
-              }
-
               if (expression.arguments.length !== 2) {
                 throw new Error(
                   "Expected hydrate() call to get exactly 2 arguments!"
@@ -225,6 +201,10 @@ module.exports = class NextPreactPartialHydrationWebpackPlugin {
                 throw new Error(
                   "Expected hydrate() call to get an object expression with a 'componentKey' property as second argument!"
                 );
+              }
+
+              if (!hydrateCallsByModule[parser.state.module]) {
+                hydrateCallsByModule[parser.state.module] = [];
               }
 
               hydrateCallsByModule[parser.state.module].push({

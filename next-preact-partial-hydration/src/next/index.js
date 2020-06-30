@@ -23,9 +23,23 @@ module.exports = function withPartialHydration(nextConfig = {}) {
         );
       }
 
-      return typeof nextConfig.webpack === "function"
-        ? nextConfig.webpack(config, options)
-        : config;
+      const res =
+        typeof nextConfig.webpack === "function"
+          ? nextConfig.webpack(config, options)
+          : config;
+
+      if (!options.isServer) {
+        const origFilename = res.output.filename;
+        res.output.filename = function (...args) {
+          const orig = origFilename.apply(this, args);
+
+          const fn = orig.replace("[buildId]", options.buildId);
+
+          return fn;
+        };
+      }
+
+      return res;
     },
   });
 };

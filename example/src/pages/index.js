@@ -1,6 +1,7 @@
 import { hydrate } from "next-preact-partial-hydration";
 import TestHydrated from "../TestHydrated";
 import TestStatic from "../TestStatic";
+import "preact/devtools";
 
 const isServer = typeof window === "undefined";
 
