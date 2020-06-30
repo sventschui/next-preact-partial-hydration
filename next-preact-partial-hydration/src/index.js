@@ -18,11 +18,14 @@ function hydrate(Component, options) {
         {
           type: "application/hydrate",
           "data-hydration-id": hydrationId,
+          dangerouslySetInnerHTML: {
+            __html: JSON.stringify({
+              ...options,
+              props,
+            }),
+          },
         },
-        JSON.stringify({
-          component: options.component,
-          props,
-        })
+        null
       ),
       h(Component, props, children),
       h(

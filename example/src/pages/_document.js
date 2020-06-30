@@ -9,7 +9,7 @@ class Head extends NextHead {
   render() {
     // TODO: use a provider wrapping next's head to override the context
     // instead of monkey-patching it here...
-    this.context._documentProps.unstable_runtimeJS = false;
+    // this.context._documentProps.unstable_runtimeJS = false;
     return super.render();
   }
 }

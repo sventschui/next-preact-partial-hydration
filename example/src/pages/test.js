@@ -1,6 +1,4 @@
 import { hydrate } from "next-preact-partial-hydration";
-import TestHydrated from "../TestHydrated";
-import TestStatic from "../TestStatic";
 
 const isServer = typeof window === "undefined";
 
@@ -12,13 +10,11 @@ export const Foo = hydrate(function _Foo({ bar }) {
   );
 });
 
-export default function IndexPage() {
+export default function TestPage() {
   return (
     <div>
       static
       <Foo bar="baz" />
-      <TestStatic />
-      <TestHydrated />
     </div>
   );
 }

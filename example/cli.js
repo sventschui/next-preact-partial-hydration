@@ -4,7 +4,8 @@ const path = require("path");
 require("./alias")();
 
 const workerJs = require.resolve("next/dist/export/worker.js");
-const aliasPath = path.relative(workerJs, path.resolve("./alias.js"));
+const aliasJs = path.resolve("./alias.js");
+const aliasPath = path.relative(path.dirname(workerJs), aliasJs);
 const requireStatement = `require("${aliasPath}")();`;
 
 const content = fs.readFileSync(workerJs, "utf8");

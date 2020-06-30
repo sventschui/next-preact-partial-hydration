@@ -7,7 +7,8 @@
   "author": "Sven Tschui <sventschui@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "dev": "node server.js",
+    "dev": "nodemon --watch ../next-preact-partial-hydration --exec yarn dev:clean-start",
+    "dev:clean-start": "rimraf node_modules/.cache .next && node server.js",
     "build": "node cli.js build",
     "start": "NODE_ENV=production node server.js"
   },
@@ -20,6 +21,7 @@
   },
   "devDependencies": {
     "module-alias": "^2.2.2",
-    "nodemon": "^2.0.4"
+    "nodemon": "^2.0.4",
+    "rimraf": "^3.0.2"
   }
 }
