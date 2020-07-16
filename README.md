@@ -122,8 +122,8 @@ The `hydrate` HOC and the webpack/babel magic will output HTML and JS in the for
     <p>Some static content</p>
     <script type="application/hydrate" data-hydration-id="1" >{"props":{...},"component":"B"}</script>
     <div>
-      {counter}
-      <button onClick={() => setCounter(1);} >+1</button>
+      1
+      <button>+1</button>
     </div>
     <script type="application/hydrate-end" data-hydration-id="1" ></script>
   </div>
