@@ -8,7 +8,7 @@ When we build mostly static, server-side-rendered websites with (p)react
 "the amount of JavaScript work being performed during page load is 
 routinely multiple orders of magnitude more than what would be considered efficient." (Jason Miller).
 
-The Gatsby project embraced this problem and offers the [`gatys-plugin-no-javascript`]() as a solution. 
+The Gatsby project embraced this problem and offers the [`gatsby-plugin-no-javascript`](https://www.gatsbyjs.org/packages/gatsby-plugin-no-javascript/) as a solution. 
 "This is useful if your site is truly a static site with no interactivity or maybe the interactivity
 is handled by different javascript than your React components." (Gatsby). In most cases modern websites are
 not fully static, think about your fancy slider you have on your start page, an autocomplete, etc. So we
